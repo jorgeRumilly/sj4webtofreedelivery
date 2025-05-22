@@ -13,8 +13,25 @@
 *
 *}
 
-<div class="alert alert-info sj4webtofreedelivery {if $hide}hidden-xs-up{/if}" role="alert">
-    <div class="sj4webtofreedelivery-title"><strong>{l s='Spend' d='Modules.Sj4webtofreedelivery.Shop'} <span class="stfd-remaining-price">{$free_ship_remaining}</span> {l s='more to get free shipping!' d='Modules.Sj4webtofreedelivery.Shop'}</strong>
-        {if isset($txt) && $txt != ''}{$txt nofilter}{/if} {* HTML, cannot escape*}
-    </div>
+<div class="alert alert-info sj4webtofreedelivery" role="alert">
+    {if $free_ship_remaining}
+        <div class="sj4webtofreedelivery-title">
+            <strong>
+                {l s='Spend' d='Modules.Sj4webtofreedelivery.Shop'} <span class="stfd-remaining-price">{$free_ship_remaining}</span>
+                {l s='more to get free shipping!' d='Modules.Sj4webtofreedelivery.Shop'}
+            </strong>
+            {if isset($txt) && $txt != ''}
+                <br><small class="text-muted">{$txt nofilter}</small>
+            {/if}
+        </div>
+    {/if}
+
+    {if $discount_message}
+        <div class="sj4webtofreedelivery-discount">
+            <strong>{$discount_message nofilter}</strong>
+            {if isset($txt) && $txt != ''}
+                <br><small class="text-muted">{$txt nofilter}</small>
+            {/if}
+        </div>
+    {/if}
 </div>

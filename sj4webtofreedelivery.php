@@ -1,11 +1,13 @@
 <?php
+
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-// use PrestaShop\PrestaShop\Core\Module\ModuleInterface;
 
-class Sj4webtofreedelivery extends Module
+class Sj4webtofreedelivery extends Module implements WidgetInterface
 {
     public function __construct()
     {
@@ -32,6 +34,10 @@ class Sj4webtofreedelivery extends Module
     public function install()
     {
         return parent::install()
+            && $this->registerHook('displayCartAjaxFreeShipp')
+            && $this->registerHook('displayCartModalContent')
+            && $this->registerHook('displayRightColumn')
+            && $this->registerHook('displayHeader')
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_ENABLED', 1)
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_THRESHOLD', 0)
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_INFO', '')
@@ -43,13 +49,29 @@ class Sj4webtofreedelivery extends Module
             && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '');
     }
 
+    public function uninstall()
+    {
+
+        return parent::uninstall()
+            && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_ENABLED')
+            && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_THRESHOLD')
+            && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_INFO')
+            && Configuration::deleteByName('SJ4WEB_EXCLUDED_CATEGORIES')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_ENABLED')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_TYPE')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_VALUE')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO');
+    }
+
     public function getContent()
     {
-        if (Tools::isSubmit('submit_'.$this->name)) {
+        if (Tools::isSubmit('submit_' . $this->name)) {
             Configuration::updateValue('SJ4WEB_FREE_SHIPPING_ENABLED', Tools::getValue('SJ4WEB_FREE_SHIPPING_ENABLED'));
             Configuration::updateValue('SJ4WEB_FREE_SHIPPING_THRESHOLD', Tools::getValue('SJ4WEB_FREE_SHIPPING_THRESHOLD'));
             Configuration::updateValue('SJ4WEB_FREE_SHIPPING_INFO', Tools::getValue('SJ4WEB_FREE_SHIPPING_INFO'));
-            Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', implode(',', Tools::getValue('SJ4WEB_EXCLUDED_CATEGORIES')));
+            $excludedCats = Tools::getValue('SJ4WEB_EXCLUDED_CATEGORIES');
+            Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', is_array($excludedCats) ? implode(',', $excludedCats) : '');
             Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', Tools::getValue('SJ4WEB_DISCOUNT_ENABLED'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', Tools::getValue('SJ4WEB_DISCOUNT_THRESHOLD'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', Tools::getValue('SJ4WEB_DISCOUNT_TYPE'));
@@ -66,7 +88,8 @@ class Sj4webtofreedelivery extends Module
         $form->module = $this;
         $form->name_controller = $this->name;
         $form->token = Tools::getAdminTokenLite('AdminModules');
-        $form->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $form->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $form->submit_action = 'submit_' . $this->name;
         $form->fields_value = [
             'SJ4WEB_FREE_SHIPPING_ENABLED' => Configuration::get('SJ4WEB_FREE_SHIPPING_ENABLED'),
             'SJ4WEB_FREE_SHIPPING_THRESHOLD' => Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD'),
@@ -167,6 +190,107 @@ class Sj4webtofreedelivery extends Module
         return $form->generateForm([$fields_form]);
     }
 
+    public function hookDisplayCartAjaxFreeShipp($params)
+    {
+        return $this->renderWidget(__FUNCTION__, $params);
+    }
+
+    public function hookDisplayCartModalContent($params)
+    {
+        return $this->renderWidget(__FUNCTION__, $params);
+    }
+
+    public function hookDisplayRightColumn($params)
+    {
+        return $this->renderWidget(__FUNCTION__, $params);
+    }
+
+    public function hookDisplayHeader()
+    {
+        $this->context->controller->registerStylesheet(
+            'sj4webtofreedelivery-style',
+            'modules/' . $this->name . '/views/css/front-style.css'
+        );
+    }
+
+    public function renderWidget($hookName = null, array $configuration = [])
+    {
+        if ($hookName === null && isset($configuration['hook'])) {
+            $hookName = $configuration['hook'];
+        }
+
+        if ($this->context->cart->isVirtualCart()) {
+            return false;
+        }
+
+        $variables = $this->getWidgetVariables($hookName, $configuration);
+
+        if (!empty($variables)) {
+            $this->context->smarty->assign($variables);
+            return $this->fetch('module:' . $this->name . '/views/templates/hook/sj4webtofreedelivery.tpl');
+        }
+
+        return false;
+    }
+
+    public function getWidgetVariables($hookName = null, array $configuration = [])
+    {
+        $context = $this->context;
+        $cart = $context->cart;
+
+        if (!$cart || $cart->isVirtualCart()) {
+            return [];
+        }
+
+        $authorized_iso_codes = ['FR'];
+        $id_address = (int)$cart->id_address_delivery;
+        if ($id_address) {
+            $country = new Country((new Address($id_address))->id_country);
+            if (!in_array($country->iso_code, $authorized_iso_codes, true)) {
+                return [];
+            }
+        }
+
+        if (count($cart->getOrderedCartRulesIds(CartRule::FILTER_ACTION_SHIPPING))) {
+            return [];
+        }
+
+        $products = $cart->getProducts();
+        $excluded = array_map('intval', explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')));
+        foreach ($products as $prod) {
+            $product = new Product($prod['id_product']);
+            $cats = $product->getCategories();
+            if (array_intersect($excluded, $cats)) {
+                return [];
+            }
+        }
+
+        $taxExcl = Group::getPriceDisplayMethod(Group::getCurrent()->id);
+        $total = $cart->getOrderTotal(!$taxExcl, Cart::BOTH_WITHOUT_SHIPPING);
+
+        $categoryIds = array_merge(...array_map(
+            fn($p) => (new Product($p['id_product']))->getCategories(),
+            $products
+        ));
+        $message = $this->getPalletMessage($total, $categoryIds);
+
+        if (!$message) {
+            return [];
+        }
+
+        $priceFormatter = new PriceFormatter();
+
+        return [
+            'free_ship_remaining' => $message['type'] === 'free_shipping'
+                ? $priceFormatter->format(Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD') - $total)
+                : null,
+            'free_ship_from' => $priceFormatter->format((float)Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD')),
+            'discount_message' => in_array($message['type'], ['discount_active', 'discount_waiting']) ? $message['message'] : null,
+            'hide' => false,
+            'txt' => $message['extra'] ?? '',
+        ];
+    }
+
     /**
      * Calcule le message à afficher selon le montant du panier.
      *
@@ -184,13 +308,13 @@ class Sj4webtofreedelivery extends Module
             }
         }
 
-        $freeEnabled = (bool) Configuration::get('SJ4WEB_FREE_SHIPPING_ENABLED');
-        $discountEnabled = (bool) Configuration::get('SJ4WEB_DISCOUNT_ENABLED');
+        $freeEnabled = (bool)Configuration::get('SJ4WEB_FREE_SHIPPING_ENABLED');
+        $discountEnabled = (bool)Configuration::get('SJ4WEB_DISCOUNT_ENABLED');
 
-        $freeThreshold = (float) Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD');
-        $discountThreshold = (float) Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD');
+        $freeThreshold = (float)Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD');
+        $discountThreshold = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD');
         $discountType = Configuration::get('SJ4WEB_DISCOUNT_TYPE');
-        $discountValue = (float) Configuration::get('SJ4WEB_DISCOUNT_VALUE');
+        $discountValue = (float)Configuration::get('SJ4WEB_DISCOUNT_VALUE');
 
         // Cas 1 : Livraison gratuite
         if ($freeEnabled && $cartTotal < $freeThreshold) {
