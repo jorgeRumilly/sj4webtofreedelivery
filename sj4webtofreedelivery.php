@@ -37,6 +37,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         return parent::install()
             && $this->registerHook('displayCartAjaxFreeShipp')
             && $this->registerHook('displayCartModalContent')
+            && $this->registerHook('displayReassurance')
             && $this->registerHook('displayRightColumn')
             && $this->registerHook('displayHeader')
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_ENABLED', 1)
@@ -50,7 +51,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '')
             && Configuration::updateValue('SJ4WEB_COLOR_BG', '#e9e4db')
             && Configuration::updateValue('SJ4WEB_COLOR_TEXT', '#707070')
-            && Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', '#707070');
+            && Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', '#707070')
+            && Configuration::updateValue('SJ4WEB_HOOK_REASSURANCE_ENABLED', 1)
+            && Configuration::updateValue('SJ4WEB_HOOK_CARTMODAL_ENABLED', 1)
+            && Configuration::updateValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED', 1);
     }
 
     public function uninstall()
@@ -68,7 +72,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO')
             && Configuration::deleteByName('SJ4WEB_COLOR_BG')
             && Configuration::deleteByName('SJ4WEB_COLOR_TEXT')
-            && Configuration::deleteByName('SJ4WEB_COLOR_SUBTITLE');
+            && Configuration::deleteByName('SJ4WEB_COLOR_SUBTITLE')
+            && Configuration::deleteByName('SJ4WEB_HOOK_REASSURANCE_ENABLED')
+            && Configuration::deleteByName('SJ4WEB_HOOK_CARTMODAL_ENABLED')
+            && Configuration::deleteByName('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED');
     }
 
     public function getContent()
@@ -87,7 +94,9 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             Configuration::updateValue('SJ4WEB_COLOR_BG', Tools::getValue('SJ4WEB_COLOR_BG'));
             Configuration::updateValue('SJ4WEB_COLOR_TEXT', Tools::getValue('SJ4WEB_COLOR_TEXT'));
             Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', Tools::getValue('SJ4WEB_COLOR_SUBTITLE'));
-
+            Configuration::updateValue('SJ4WEB_HOOK_REASSURANCE_ENABLED', Tools::getValue('SJ4WEB_HOOK_REASSURANCE_ENABLED'));
+            Configuration::updateValue('SJ4WEB_HOOK_CARTMODAL_ENABLED', Tools::getValue('SJ4WEB_HOOK_CARTMODAL_ENABLED'));
+            Configuration::updateValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED', Tools::getValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED'));
         }
 
         return $this->renderForm();
@@ -114,6 +123,9 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             'SJ4WEB_COLOR_BG' => Configuration::get('SJ4WEB_COLOR_BG', null, null, null, '#e9e4db'),
             'SJ4WEB_COLOR_TEXT' => Configuration::get('SJ4WEB_COLOR_TEXT', null, null, null, '#707070'),
             'SJ4WEB_COLOR_SUBTITLE' => Configuration::get('SJ4WEB_COLOR_SUBTITLE', null, null, null, '#707070'),
+            'SJ4WEB_HOOK_REASSURANCE_ENABLED' => Configuration::get('SJ4WEB_HOOK_REASSURANCE_ENABLED'),
+            'SJ4WEB_HOOK_CARTMODAL_ENABLED' => Configuration::get('SJ4WEB_HOOK_CARTMODAL_ENABLED'),
+            'SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED' => Configuration::get('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED'),
         ];
 
         $fields_form = [
@@ -209,6 +221,36 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                         'label' => $this->trans('Discount complementary message', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_DISCOUNT_INFO'
                     ],
+                    [
+                        'type' => 'switch',
+                        'label' => $this->trans('Afficher sur hook Reassurance', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_HOOK_REASSURANCE_ENABLED',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                            ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                        ],
+                    ],
+                    [
+                        'type' => 'switch',
+                        'label' => $this->trans('Afficher sur hook CartModal', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_HOOK_CARTMODAL_ENABLED',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                            ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                        ],
+                    ],
+                    [
+                        'type' => 'switch',
+                        'label' => $this->trans('Afficher sur hook RightColumn', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                            ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
+                        ],
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->trans('Save', [], 'Modules.Sj4webtofreedelivery.Admin'),
@@ -224,14 +266,31 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         return $this->renderWidget('displayCartAjaxFreeShipp', $params);
     }
 
+    public function hookDisplayReassurance($params)
+    {
+        $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_REASSURANCE_ENABLED');
+        if($displayInHook) {
+            return $this->renderWidget('displayReassurance', $params);
+        }
+        return '';
+    }
+
     public function hookDisplayCartModalContent($params)
     {
-        return $this->renderWidget('displayCartModalContent', $params);
+        $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_CARTMODAL_ENABLED');
+        if($displayInHook) {
+            return $this->renderWidget('displayCartModalContent', $params);
+        }
+        return '';
     }
 
     public function hookDisplayRightColumn($params)
     {
-        return $this->renderWidget('displayRightColumn', $params);
+        $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED');
+        if($displayInHook) {
+            return $this->renderWidget('displayRightColumn', $params);
+        }
+        return '';
     }
 
     public function hookDisplayHeader()
@@ -286,7 +345,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
         $products = $cart->getProducts();
         $excluded = array_map('intval', explode(',', (Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')) ?? ''));
-        if(count($excluded) === 1 && $excluded[0] === 0) {
+        if (count($excluded) === 1 && $excluded[0] === 0) {
             $excluded = [];
         }
         foreach ($products as $prod) {
