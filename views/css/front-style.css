@@ -1,20 +1,14 @@
 .alert.alert-info.sj4webtofreedelivery {
-    margin-top: 5px;
-    margin-bottom: 5px;
-    background-color: #f9f6ef;
-    border-color: #f9f6ef;
-    color: #909090;
+    margin-top: 10px;
+    margin-bottom: 7px;
     line-height: 120%;
     padding: 0.75rem;
     font-size:1rem;
 }
-
-.card-block .alert.alert-info.sj4webtofreedelivery strong {
-    color: #909090;
+.alert.alert-info.sj4webtofreedelivery {
+    padding-left: 2.5rem;
 }
-
 .alert.sj4webtofreedelivery p {
     font-size: 0.875em!important;
     margin-bottom: 0;
-    color: #909090;
 }

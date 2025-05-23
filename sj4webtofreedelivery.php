@@ -1,6 +1,7 @@
 <?php
 
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -23,7 +24,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         $this->displayName = $this->trans('To Free Delivery', [], 'Modules.Sj4webtofreedelivery.Admin');
         $this->description = $this->trans('Display messages related to free shipping or discount thresholds.', [], 'Modules.Sj4webtofreedelivery.Admin');
 
-        $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => _PS_VERSION_];
     }
 
     public function isUsingNewTranslationSystem()
@@ -46,7 +47,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', 0)
             && Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', 'percent')
             && Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', 0)
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '');
+            && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '')
+            && Configuration::updateValue('SJ4WEB_COLOR_BG', '#e9e4db')
+            && Configuration::updateValue('SJ4WEB_COLOR_TEXT', '#707070')
+            && Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', '#707070');
     }
 
     public function uninstall()
@@ -61,7 +65,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_TYPE')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_VALUE')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO');
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO')
+            && Configuration::deleteByName('SJ4WEB_COLOR_BG')
+            && Configuration::deleteByName('SJ4WEB_COLOR_TEXT')
+            && Configuration::deleteByName('SJ4WEB_COLOR_SUBTITLE');
     }
 
     public function getContent()
@@ -77,6 +84,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', Tools::getValue('SJ4WEB_DISCOUNT_TYPE'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', Tools::getValue('SJ4WEB_DISCOUNT_VALUE'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', Tools::getValue('SJ4WEB_DISCOUNT_INFO'));
+            Configuration::updateValue('SJ4WEB_COLOR_BG', Tools::getValue('SJ4WEB_COLOR_BG'));
+            Configuration::updateValue('SJ4WEB_COLOR_TEXT', Tools::getValue('SJ4WEB_COLOR_TEXT'));
+            Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', Tools::getValue('SJ4WEB_COLOR_SUBTITLE'));
+
         }
 
         return $this->renderForm();
@@ -99,7 +110,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             'SJ4WEB_DISCOUNT_THRESHOLD' => Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD'),
             'SJ4WEB_DISCOUNT_TYPE' => Configuration::get('SJ4WEB_DISCOUNT_TYPE'),
             'SJ4WEB_DISCOUNT_VALUE' => Configuration::get('SJ4WEB_DISCOUNT_VALUE'),
-            'SJ4WEB_DISCOUNT_INFO' => Configuration::get('SJ4WEB_DISCOUNT_INFO')
+            'SJ4WEB_DISCOUNT_INFO' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
+            'SJ4WEB_COLOR_BG' => Configuration::get('SJ4WEB_COLOR_BG', null, null, null, '#e9e4db'),
+            'SJ4WEB_COLOR_TEXT' => Configuration::get('SJ4WEB_COLOR_TEXT', null, null, null, '#707070'),
+            'SJ4WEB_COLOR_SUBTITLE' => Configuration::get('SJ4WEB_COLOR_SUBTITLE', null, null, null, '#707070'),
         ];
 
         $fields_form = [
@@ -109,6 +123,21 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                     'icon' => 'icon-truck'
                 ],
                 'input' => [
+                    [
+                        'type' => 'color',
+                        'label' => $this->trans('Background color', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_COLOR_BG',
+                    ],
+                    [
+                        'type' => 'color',
+                        'label' => $this->trans('Text color', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_COLOR_TEXT',
+                    ],
+                    [
+                        'type' => 'color',
+                        'label' => $this->trans('Subtitle text color', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_COLOR_SUBTITLE',
+                    ],
                     [
                         'type' => 'switch',
                         'label' => $this->trans('Enable free shipping threshold', [], 'Modules.Sj4webtofreedelivery.Admin'),
@@ -192,17 +221,17 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
     public function hookDisplayCartAjaxFreeShipp($params)
     {
-        return $this->renderWidget(__FUNCTION__, $params);
+        return $this->renderWidget('displayCartAjaxFreeShipp', $params);
     }
 
     public function hookDisplayCartModalContent($params)
     {
-        return $this->renderWidget(__FUNCTION__, $params);
+        return $this->renderWidget('displayCartModalContent', $params);
     }
 
     public function hookDisplayRightColumn($params)
     {
-        return $this->renderWidget(__FUNCTION__, $params);
+        return $this->renderWidget('displayRightColumn', $params);
     }
 
     public function hookDisplayHeader()
@@ -256,7 +285,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         }
 
         $products = $cart->getProducts();
-        $excluded = array_map('intval', explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')));
+        $excluded = array_map('intval', explode(',', (Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')) ?? ''));
+        if(count($excluded) === 1 && $excluded[0] === 0) {
+            $excluded = [];
+        }
         foreach ($products as $prod) {
             $product = new Product($prod['id_product']);
             $cats = $product->getCategories();
@@ -288,6 +320,9 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             'discount_message' => in_array($message['type'], ['discount_active', 'discount_waiting']) ? $message['message'] : null,
             'hide' => false,
             'txt' => $message['extra'] ?? '',
+            'color_subtitle' => Configuration::get('SJ4WEB_COLOR_SUBTITLE', null, null, null, '#707070'),
+            'color_bg' => Configuration::get('SJ4WEB_COLOR_BG', null, null, null, '#e9e4db'),
+            'color_text' => Configuration::get('SJ4WEB_COLOR_TEXT', null, null, null, '#707070'),
         ];
     }
 

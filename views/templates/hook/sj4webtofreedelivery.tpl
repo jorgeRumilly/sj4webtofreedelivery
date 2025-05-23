@@ -13,7 +13,7 @@
 *
 *}
 
-<div class="alert alert-info sj4webtofreedelivery" role="alert">
+<div class="alert alert-info sj4webtofreedelivery" role="alert" style="background-color: {$color_bg|escape:'html'}; border-color: {$color_bg|escape:'html'}; color: {$color_text|escape:'html'};">
     {if $free_ship_remaining}
         <div class="sj4webtofreedelivery-title">
             <strong>
@@ -21,7 +21,9 @@
                 {l s='more to get free shipping!' d='Modules.Sj4webtofreedelivery.Shop'}
             </strong>
             {if isset($txt) && $txt != ''}
-                <br><small class="text-muted">{$txt nofilter}</small>
+                <div class="sj4webtofreedelivery-title" style="color: {$color_subtitle|escape:'html'};">
+                    <small class="text-muted">{$txt nofilter}</small>
+                </div>
             {/if}
         </div>
     {/if}
@@ -30,7 +32,9 @@
         <div class="sj4webtofreedelivery-discount">
             <strong>{$discount_message nofilter}</strong>
             {if isset($txt) && $txt != ''}
-                <br><small class="text-muted">{$txt nofilter}</small>
+                <div class="sj4webtofreedelivery-title" style="color: {$color_subtitle|escape:'html'};">
+                    <small class="text-muted">{$txt nofilter}</small>
+                </div>
             {/if}
         </div>
     {/if}
