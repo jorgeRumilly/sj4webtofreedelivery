@@ -1,7 +1,7 @@
 <?php
 
-use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -21,8 +21,8 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
         parent::__construct();
 
-        $this->displayName = $this->trans('To Free Delivery', [], 'Modules.Sj4webtofreedelivery.Admin');
-        $this->description = $this->trans('Display messages related to free shipping or discount thresholds.', [], 'Modules.Sj4webtofreedelivery.Admin');
+        $this->displayName = $this->trans('SJ4WEB – Amount left to unlock free shipping or discount', [], 'Modules.Sj4webtofreedelivery.Admin');
+        $this->description = $this->trans('Display a message as the customer gets closer to earning free shipping or a discount.', [], 'Modules.Sj4webtofreedelivery.Admin');
 
         $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => _PS_VERSION_];
     }
@@ -52,9 +52,9 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::updateValue('SJ4WEB_COLOR_BG', '#e9e4db')
             && Configuration::updateValue('SJ4WEB_COLOR_TEXT', '#707070')
             && Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', '#707070')
-            && Configuration::updateValue('SJ4WEB_HOOK_REASSURANCE_ENABLED', 1)
-            && Configuration::updateValue('SJ4WEB_HOOK_CARTMODAL_ENABLED', 1)
-            && Configuration::updateValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED', 1);
+            && Configuration::updateValue('SJ4WEB_HOOK_REASSURANCE_ENABLED', 0)
+            && Configuration::updateValue('SJ4WEB_HOOK_CARTMODAL_ENABLED', 0)
+            && Configuration::updateValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED', 0);
     }
 
     public function uninstall()
@@ -98,8 +98,8 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             Configuration::updateValue('SJ4WEB_HOOK_CARTMODAL_ENABLED', Tools::getValue('SJ4WEB_HOOK_CARTMODAL_ENABLED'));
             Configuration::updateValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED', Tools::getValue('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED'));
         }
-
-        return $this->renderForm();
+        $infoTpl = $this->context->smarty->fetch('module:' . $this->name . '/views/templates/admin/hook_info.tpl');
+        return $infoTpl . $this->renderForm();
     }
 
     protected function renderForm()
@@ -159,17 +159,20 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
+                        'desc' => $this->trans('Enable to display how much more is needed for free shipping.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
                         'label' => $this->trans('Free shipping threshold (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_FREE_SHIPPING_THRESHOLD',
-                        'class' => 'fixed-width-sm'
+                        'class' => 'fixed-width-sm',
+                        'desc' => $this->trans('Amount needed to get free delivery.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
                         'label' => $this->trans('Additional information', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_FREE_SHIPPING_INFO'
+                        'name' => 'SJ4WEB_FREE_SHIPPING_INFO',
+                        'desc' => $this->trans('Add some text here to explain the threshold, e.g. offer valid for deliveries in France only.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'categories',
@@ -190,12 +193,14 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
+                        'desc' => $this->trans('Display remaining amount needed for a discount.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
                         'label' => $this->trans('Discount threshold (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_DISCOUNT_THRESHOLD',
-                        'class' => 'fixed-width-sm'
+                        'class' => 'fixed-width-sm',
+                        'desc' => $this->trans('Amount needed for discount.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'select',
@@ -214,12 +219,14 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                         'type' => 'text',
                         'label' => $this->trans('Discount value', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_DISCOUNT_VALUE',
-                        'class' => 'fixed-width-sm'
+                        'class' => 'fixed-width-sm',
+                        'desc' => $this->trans('Discount value (percentage or fixed amount).', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
                         'label' => $this->trans('Discount complementary message', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_INFO'
+                        'name' => 'SJ4WEB_DISCOUNT_INFO',
+                        'desc' => $this->trans('Add some text here to explain the discount condition, e.g. valid only for professionals.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'switch',
@@ -230,6 +237,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
+                        'desc' => $this->trans('Enable to display the message on the displayReassurance hook.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'switch',
@@ -240,6 +248,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
+                        'desc' => $this->trans('Enable to display the message on the displayCartModalContent hook.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'switch',
@@ -250,6 +259,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
+                        'desc' => $this->trans('Enable to display the message on the displayRightColumn hook.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                 ],
                 'submit' => [
@@ -269,7 +279,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
     public function hookDisplayReassurance($params)
     {
         $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_REASSURANCE_ENABLED');
-        if($displayInHook) {
+        if ($displayInHook) {
             return $this->renderWidget('displayReassurance', $params);
         }
         return '';
@@ -278,7 +288,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
     public function hookDisplayCartModalContent($params)
     {
         $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_CARTMODAL_ENABLED');
-        if($displayInHook) {
+        if ($displayInHook) {
             return $this->renderWidget('displayCartModalContent', $params);
         }
         return '';
@@ -287,7 +297,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
     public function hookDisplayRightColumn($params)
     {
         $displayInHook = (bool)Configuration::get('SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED');
-        if($displayInHook) {
+        if ($displayInHook) {
             return $this->renderWidget('displayRightColumn', $params);
         }
         return '';
@@ -376,6 +386,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                 ? $priceFormatter->format(Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD') - $total)
                 : null,
             'free_ship_from' => $priceFormatter->format((float)Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD')),
+            'free_ship_message' => $message['type'] === 'free_shipping' ? $message['message'] : null,
             'discount_message' => in_array($message['type'], ['discount_active', 'discount_waiting']) ? $message['message'] : null,
             'hide' => false,
             'txt' => $message['extra'] ?? '',
