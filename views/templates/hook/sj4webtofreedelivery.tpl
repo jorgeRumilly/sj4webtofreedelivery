@@ -16,10 +16,6 @@
 <div class="alert alert-info sj4webtofreedelivery" role="alert" style="background-color: {$color_bg|escape:'html'}; border-color: {$color_bg|escape:'html'}; color: {$color_text|escape:'html'};">
     {if $free_ship_remaining}
         <div class="sj4webtofreedelivery-title">
-{*            <strong>*}
-{*                {l s='Spend' d='Modules.Sj4webtofreedelivery.Shop'} <span class="stfd-remaining-price">{$free_ship_remaining}</span>*}
-{*                {l s='more to get free shipping!' d='Modules.Sj4webtofreedelivery.Shop'}*}
-{*            </strong>*}
             <strong>{$free_ship_message nofilter}</strong>
             {if isset($txt) && $txt != ''}
                 <div class="sj4webtofreedelivery-title" style="color: {$color_subtitle|escape:'html'};">

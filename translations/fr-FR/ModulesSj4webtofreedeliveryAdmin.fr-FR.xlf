@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ModulesSj4webtofreedeliveryAdmin.xlf">
+    <body>
+      <trans-unit id="55405777" resname="SJ4WEB – Amount left to unlock free shipping or discount">
+        <source>SJ4WEB – Amount left to unlock free shipping or discount</source>
+        <target>SJ4WEB – Montant restant avant d’obtenir la livraison gratuite ou une remise</target>
+      </trans-unit>
+      <trans-unit id="9379426" resname="Display a message as the customer gets closer to earning free shipping or a discount.">
+        <source>Display a message as the customer gets closer to earning free shipping or a discount.</source>
+        <target>Afficher un message lorsque le client se rapproche de la livraison gratuite ou d’une remise.</target>
+      </trans-unit>
+      <trans-unit id="77223383" resname="Free shipping and discount thresholds">
+        <source>Free shipping and discount thresholds</source>
+        <target>Seuils de livraison gratuite et de remise</target>
+      </trans-unit>
+      <trans-unit id="21496919" resname="Background color">
+        <source>Background color</source>
+        <target>Couleur de fond</target>
+      </trans-unit>
+      <trans-unit id="89114776" resname="Text color">
+        <source>Text color</source>
+        <target>Couleur du texte</target>
+      </trans-unit>
+      <trans-unit id="67757973" resname="Subtitle text color">
+        <source>Subtitle text color</source>
+        <target>Couleur du sous-titre</target>
+      </trans-unit>
+      <trans-unit id="82689766" resname="Enable free shipping threshold">
+        <source>Enable free shipping threshold</source>
+        <target>Activer le seuil de livraison gratuite</target>
+      </trans-unit>
+      <trans-unit id="25217528" resname="Yes">
+        <source>Yes</source>
+        <target>Oui</target>
+      </trans-unit>
+      <trans-unit id="70737752" resname="No">
+        <source>No</source>
+        <target>Non</target>
+      </trans-unit>
+      <trans-unit id="17957434" resname="Enable to display how much more is needed for free shipping.">
+        <source>Enable to display how much more is needed for free shipping.</source>
+        <target>Permet d’afficher le montant restant avant d’obtenir la livraison gratuite.</target>
+      </trans-unit>
+      <trans-unit id="78046366" resname="Free shipping threshold (€)">
+        <source>Free shipping threshold (€)</source>
+        <target>Seuil de livraison gratuite (€)</target>
+      </trans-unit>
+      <trans-unit id="56311586" resname="Amount needed to get free delivery.">
+        <source>Amount needed to get free delivery.</source>
+        <target>Montant requis pour bénéficier de la livraison gratuite.</target>
+      </trans-unit>
+      <trans-unit id="80850246" resname="Additional information">
+        <source>Additional information</source>
+        <target>Informations complémentaires</target>
+      </trans-unit>
+      <trans-unit id="62354773" resname="Add some text here to explain the threshold, e.g. offer valid for deliveries in France only.">
+        <source>Add some text here to explain the threshold, e.g. offer valid for deliveries in France only.</source>
+        <target>Ajoutez un texte explicatif, ex. : offre valable uniquement pour les livraisons en France.</target>
+      </trans-unit>
+      <trans-unit id="16049232" resname="Excluded categories">
+        <source>Excluded categories</source>
+        <target>Catégories exclues</target>
+      </trans-unit>
+      <trans-unit id="72605537" resname="Enable discount threshold">
+        <source>Enable discount threshold</source>
+        <target>Activer le seuil de remise</target>
+      </trans-unit>
+      <trans-unit id="71012000" resname="Display remaining amount needed for a discount.">
+        <source>Display remaining amount needed for a discount.</source>
+        <target>Afficher le montant restant pour obtenir une remise.</target>
+      </trans-unit>
+      <trans-unit id="84735436" resname="Discount threshold (€)">
+        <source>Discount threshold (€)</source>
+        <target>Seuil de remise (€)</target>
+      </trans-unit>
+      <trans-unit id="47632714" resname="Amount needed for discount.">
+        <source>Amount needed for discount.</source>
+        <target>Montant requis pour obtenir la remise.</target>
+      </trans-unit>
+      <trans-unit id="89649779" resname="Minimum cart amount to display (€)">
+        <source>Minimum cart amount to display (€)</source>
+        <target>Montant minimum du panier pour afficher le message (€)</target>
+      </trans-unit>
+      <trans-unit id="84857760" resname="Display message starting from this cart amount. Leave blank or 0 to disable.">
+        <source>Display message starting from this cart amount. Leave blank or 0 to disable.</source>
+        <target>Afficher le message à partir de ce montant de panier. Laisser vide ou mettre 0 pour désactiver.</target>
+      </trans-unit>
+      <trans-unit id="86015874" resname="Discount type">
+        <source>Discount type</source>
+        <target>Type de remise</target>
+      </trans-unit>
+      <trans-unit id="76210496" resname="Percentage">
+        <source>Percentage</source>
+        <target>Pourcentage</target>
+      </trans-unit>
+      <trans-unit id="11301048" resname="Amount">
+        <source>Amount</source>
+        <target>Montant</target>
+      </trans-unit>
+      <trans-unit id="55915256" resname="Discount value">
+        <source>Discount value</source>
+        <target>Valeur de la remise</target>
+      </trans-unit>
+      <trans-unit id="60679080" resname="Discount value (percentage or fixed amount).">
+        <source>Discount value (percentage or fixed amount).</source>
+        <target>Valeur de la remise (en pourcentage ou en montant fixe).</target>
+      </trans-unit>
+      <trans-unit id="49410222" resname="Discount complementary message">
+        <source>Discount complementary message</source>
+        <target>Message complémentaire sur la remise</target>
+      </trans-unit>
+      <trans-unit id="51880860" resname="Add some text here to explain the discount condition, e.g. valid only for professionals.">
+        <source>Add some text here to explain the discount condition, e.g. valid only for professionals.</source>
+        <target>Ajoutez un texte explicatif, ex. : valable uniquement pour les professionnels.</target>
+      </trans-unit>
+      <trans-unit id="88834780" resname="Display on hook Reassurance">
+        <source>Display on hook Reassurance</source>
+        <target>Afficher sur le hook Reassurance</target>
+      </trans-unit>
+      <trans-unit id="85291769" resname="Enable to display the message on the displayReassurance hook.">
+        <source>Enable to display the message on the displayReassurance hook.</source>
+        <target>Permet d’afficher le message sur le hook displayReassurance.</target>
+      </trans-unit>
+      <trans-unit id="93972686" resname="Display on hook CartModal">
+        <source>Display on hook CartModal</source>
+        <target>Afficher sur le hook CartModal</target>
+      </trans-unit>
+      <trans-unit id="98517949" resname="Enable to display the message on the displayCartModalContent hook.">
+        <source>Enable to display the message on the displayCartModalContent hook.</source>
+        <target>Permet d’afficher le message sur le hook displayCartModalContent.</target>
+      </trans-unit>
+      <trans-unit id="13328728" resname="Display on hook RightColumn">
+        <source>Display on hook RightColumn</source>
+        <target>Afficher sur le hook RightColumn</target>
+      </trans-unit>
+      <trans-unit id="99228159" resname="Enable to display the message on the displayRightColumn hook.">
+        <source>Enable to display the message on the displayRightColumn hook.</source>
+        <target>Permet d’afficher le message sur le hook displayRightColumn.</target>
+      </trans-unit>
+      <trans-unit id="60401753" resname="Save">
+        <source>Save</source>
+        <target>Enregistrer</target>
+      </trans-unit>
+      <trans-unit id="85926325" resname="Important information">
+        <source>Important information</source>
+        <target>Information importante</target>
+      </trans-unit>
+      <trans-unit id="39676458" resname="About the custom hook: displayCartAjaxFreeShipp">
+        <source>About the custom hook: displayCartAjaxFreeShipp</source>
+        <target>À propos du hook personnalisé : displayCartAjaxFreeShipp</target>
+      </trans-unit>
+      <trans-unit id="18969672" resname="This hook allows dynamic display of the remaining amount before free shipping or a discount, in areas where no native PrestaShop hook is available.">
+        <source>This hook allows dynamic display of the remaining amount before free shipping or a discount, in areas where no native PrestaShop hook is available.</source>
+        <target>Ce hook permet d’afficher dynamiquement le montant restant avant livraison gratuite ou remise dans les zones où aucun hook natif PrestaShop n’est disponible.</target>
+      </trans-unit>
+      <trans-unit id="38871349" resname="In the mini cart displayed when hovering over the cart icon">
+        <source>In the mini cart displayed when hovering over the cart icon</source>
+        <target>Dans le mini-panier affiché au survol de l’icône panier</target>
+      </trans-unit>
+      <trans-unit id="61553449" resname="In the cart summary or checkout process (cart-subtotal/cart-summary)">
+        <source>In the cart summary or checkout process (cart-subtotal/cart-summary)</source>
+        <target>Dans le récapitulatif du panier ou le tunnel de commande (cart-subtotal/cart-summary)</target>
+      </trans-unit>
+      <trans-unit id="69209291" resname="In any manually modified template">
+        <source>In any manually modified template</source>
+        <target>Dans n’importe quel template modifié manuellement</target>
+      </trans-unit>
+      <trans-unit id="64204776" resname="To use it, add this code to the corresponding .tpl file:">
+        <source>To use it, add this code to the corresponding .tpl file:</source>
+        <target>Pour l’utiliser, ajoutez ce code dans le fichier .tpl correspondant :</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

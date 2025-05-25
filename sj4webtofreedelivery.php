@@ -24,7 +24,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         $this->displayName = $this->trans('SJ4WEB – Amount left to unlock free shipping or discount', [], 'Modules.Sj4webtofreedelivery.Admin');
         $this->description = $this->trans('Display a message as the customer gets closer to earning free shipping or a discount.', [], 'Modules.Sj4webtofreedelivery.Admin');
 
-        $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.7.8', 'max' => _PS_VERSION_];
     }
 
     public function isUsingNewTranslationSystem()
@@ -46,6 +46,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', '')
             && Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', 0)
             && Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', 0)
+            && Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM', 0)
             && Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', 'percent')
             && Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', 0)
             && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '')
@@ -67,6 +68,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::deleteByName('SJ4WEB_EXCLUDED_CATEGORIES')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_ENABLED')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD_FROM')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_TYPE')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_VALUE')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO')
@@ -88,6 +90,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', is_array($excludedCats) ? implode(',', $excludedCats) : '');
             Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', Tools::getValue('SJ4WEB_DISCOUNT_ENABLED'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', Tools::getValue('SJ4WEB_DISCOUNT_THRESHOLD'));
+            Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM', Tools::getValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', Tools::getValue('SJ4WEB_DISCOUNT_TYPE'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', Tools::getValue('SJ4WEB_DISCOUNT_VALUE'));
             Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', Tools::getValue('SJ4WEB_DISCOUNT_INFO'));
@@ -117,6 +120,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             'SJ4WEB_EXCLUDED_CATEGORIES' => explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')),
             'SJ4WEB_DISCOUNT_ENABLED' => Configuration::get('SJ4WEB_DISCOUNT_ENABLED'),
             'SJ4WEB_DISCOUNT_THRESHOLD' => Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD'),
+            'SJ4WEB_DISCOUNT_THRESHOLD_FROM' => Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD_FROM'),
             'SJ4WEB_DISCOUNT_TYPE' => Configuration::get('SJ4WEB_DISCOUNT_TYPE'),
             'SJ4WEB_DISCOUNT_VALUE' => Configuration::get('SJ4WEB_DISCOUNT_VALUE'),
             'SJ4WEB_DISCOUNT_INFO' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
@@ -203,6 +207,13 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                         'desc' => $this->trans('Amount needed for discount.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
+                        'type' => 'text',
+                        'label' => $this->trans('Minimum cart amount to display (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_DISCOUNT_THRESHOLD_FROM',
+                        'class' => 'fixed-width-sm',
+                        'desc' => $this->trans('Display message starting from this cart amount. Leave blank or 0 to disable.', [], 'Modules.Sj4webtofreedelivery.Admin')
+                    ],
+                    [
                         'type' => 'select',
                         'label' => $this->trans('Discount type', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_DISCOUNT_TYPE',
@@ -230,7 +241,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->trans('Afficher sur hook Reassurance', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'label' => $this->trans('Display on hook Reassurance', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_HOOK_REASSURANCE_ENABLED',
                         'is_bool' => true,
                         'values' => [
@@ -241,7 +252,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->trans('Afficher sur hook CartModal', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'label' => $this->trans('Display on hook CartModal', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_HOOK_CARTMODAL_ENABLED',
                         'is_bool' => true,
                         'values' => [
@@ -252,7 +263,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->trans('Afficher sur hook RightColumn', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'label' => $this->trans('Display on hook RightColumn', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_HOOK_RIGHTCOLUMN_ENABLED',
                         'is_bool' => true,
                         'values' => [
@@ -420,6 +431,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         $discountThreshold = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD');
         $discountType = Configuration::get('SJ4WEB_DISCOUNT_TYPE');
         $discountValue = (float)Configuration::get('SJ4WEB_DISCOUNT_VALUE');
+        $minCartFrom = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD_FROM');
 
         // Cas 1 : Livraison gratuite
         if ($freeEnabled && $cartTotal < $freeThreshold) {
@@ -427,7 +439,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             return [
                 'type' => 'free_shipping',
                 'message' => $this->trans(
-                    'Plus que %amount% € avant de bénéficier de la livraison gratuite.',
+                    'Only %amount% € left to get free shipping.',
                     ['%amount%' => number_format($diff, 2, ',', ' ')],
                     'Modules.Sj4webtofreedelivery.Shop'
                 ),
@@ -435,8 +447,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             ];
         }
 
-        // Cas 2 : Remise virement si le seuil est atteint (ou presque)
-        if ($discountEnabled && $cartTotal < $discountThreshold && $cartTotal >= $freeThreshold) {
+        // Cas 2 : Remise virement si le seuil est atteint (ou presque) et que le montant du panier est supérieur au seuil minimum (si défini)
+        if ($discountEnabled && $cartTotal < $discountThreshold && $cartTotal >= $freeThreshold
+            && ($minCartFrom === 0.0 || $cartTotal >= $minCartFrom)
+        ) {
             $diff = round($discountThreshold - $cartTotal, 2);
             $label = $discountType === 'percent'
                 ? $discountValue . '%'
@@ -445,7 +459,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             return [
                 'type' => 'discount_waiting',
                 'message' => $this->trans(
-                    'Plus que %amount% € avant de bénéficier de %discount% sur votre commande.',
+                    'Only %amount% € left to get %discount% off your order.',
                     [
                         '%amount%' => number_format($diff, 2, ',', ' '),
                         '%discount%' => $label,
@@ -455,7 +469,6 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                 'extra' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
             ];
         }
-
         // Cas 3 : Remise active
         if ($discountEnabled && $cartTotal >= $discountThreshold) {
             $label = $discountType === 'percent'
@@ -465,7 +478,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             return [
                 'type' => 'discount_active',
                 'message' => $this->trans(
-                    'Vous bénéficiez de %discount% sur votre commande.',
+                    'You’re getting %discount% off your order.',
                     ['%discount%' => $label],
                     'Modules.Sj4webtofreedelivery.Shop'
                 ),

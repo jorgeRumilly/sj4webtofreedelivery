@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ModulesSj4webtofreedeliveryShop.xlf">
+    <body>
+      <trans-unit id="12693109" resname="Only %amount% € left to get free shipping.">
+        <source>Only %amount% € left to get free shipping.</source>
+        <target>Plus que %amount% € pour bénéficier de la livraison gratuite.</target>
+      </trans-unit>
+      <trans-unit id="77917445" resname="Only %amount% € left to get %discount% off your order.">
+        <source>Only %amount% € left to get %discount% off your order.</source>
+        <target>Plus que %amount% € pour bénéficier de %discount% sur votre commande.</target>
+      </trans-unit>
+      <trans-unit id="85841800" resname="You’re getting %discount% off your order.">
+        <source>You’re getting %discount% off your order.</source>
+        <target>Vous bénéficiez de %discount% sur votre commande.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
