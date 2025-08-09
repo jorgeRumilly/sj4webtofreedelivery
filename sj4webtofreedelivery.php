@@ -351,7 +351,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             return [];
         }
 
-        $authorized_iso_codes = ['FR'];
+        $authorized_iso_codes = ['FR', 'BE'];
         $id_address = (int)$cart->id_address_delivery;
         if ($id_address) {
             $country = new Country((new Address($id_address))->id_country);
