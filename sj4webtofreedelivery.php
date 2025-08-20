@@ -379,12 +379,13 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
         $taxExcl = Group::getPriceDisplayMethod(Group::getCurrent()->id);
         $total = $cart->getOrderTotal(!$taxExcl, Cart::BOTH_WITHOUT_SHIPPING);
+        $discount = $cart->getOrderTotal(!$taxExcl, Cart::ONLY_DISCOUNTS);
 
         $categoryIds = array_merge(...array_map(
             fn($p) => (new Product($p['id_product']))->getCategories(),
             $products
         ));
-        $message = $this->getPalletMessage($total, $categoryIds);
+        $message = $this->getPalletMessage($total, $categoryIds, $discount);
 
         if (!$message) {
             return [];
@@ -414,7 +415,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
      * @param array $productCategoryIds Liste des IDs de catégories des produits du panier
      * @return array|null Message structuré ou null si rien à afficher
      */
-    private function getPalletMessage(float $cartTotal, array $productCategoryIds): ?array
+    private function getPalletMessage(float $cartTotal, array $productCategoryIds, $cartDiscount = 0.00): ?array
     {
         // Vérifie si une des catégories est exclue
         $excluded = array_filter(array_map('intval', explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES'))));
@@ -432,6 +433,10 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         $discountType = Configuration::get('SJ4WEB_DISCOUNT_TYPE');
         $discountValue = (float)Configuration::get('SJ4WEB_DISCOUNT_VALUE');
         $minCartFrom = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD_FROM');
+
+        if($discountEnabled) {
+            $cartTotal += $cartDiscount; // Ajoute la remise du panier si applicable
+        }
 
         // Cas 1 : Livraison gratuite
         if ($freeEnabled && $cartTotal < $freeThreshold) {
