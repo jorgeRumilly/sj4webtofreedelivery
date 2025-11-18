@@ -14,7 +14,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
     {
         $this->name = 'sj4webtofreedelivery';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '2.0.0';
         $this->author = 'SJ4WEB.FR';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -44,12 +44,13 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_THRESHOLD', 0)
             && Configuration::updateValue('SJ4WEB_FREE_SHIPPING_INFO', '')
             && Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', '')
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', 0)
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', 0)
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM', 0)
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', 'percent')
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', 0)
-            && Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', '')
+            && Configuration::updateValue('SJ4WEB_ALLOWED_COUNTRIES', 'FR,BE')
+            && Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', 1)
+            && Configuration::updateValue('SJ4WEB_DISCOUNT_MIN_DISPLAY', 0)
+            && Configuration::updateValue('SJ4WEB_MESSAGE_BEFORE_TIER', 'Plus que {amount}€ pour bénéficier de {discount} de remise')
+            && Configuration::updateValue('SJ4WEB_MESSAGE_AFTER_TIER', 'Vous bénéficiez de {discount} de remise')
+            && Configuration::updateValue('SJ4WEB_MESSAGE_BETWEEN_TIERS', 'Vous bénéficiez de {discount} de remise, plus que {amount}€ pour {next_discount}')
+            && Configuration::updateValue('SJ4WEB_MESSAGE_TIER_INFO', '')
             && Configuration::updateValue('SJ4WEB_COLOR_BG', '#e9e4db')
             && Configuration::updateValue('SJ4WEB_COLOR_TEXT', '#707070')
             && Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', '#707070')
@@ -60,18 +61,18 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
     public function uninstall()
     {
-
         return parent::uninstall()
             && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_ENABLED')
             && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_THRESHOLD')
             && Configuration::deleteByName('SJ4WEB_FREE_SHIPPING_INFO')
             && Configuration::deleteByName('SJ4WEB_EXCLUDED_CATEGORIES')
+            && Configuration::deleteByName('SJ4WEB_ALLOWED_COUNTRIES')
             && Configuration::deleteByName('SJ4WEB_DISCOUNT_ENABLED')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_THRESHOLD_FROM')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_TYPE')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_VALUE')
-            && Configuration::deleteByName('SJ4WEB_DISCOUNT_INFO')
+            && Configuration::deleteByName('SJ4WEB_DISCOUNT_MIN_DISPLAY')
+            && Configuration::deleteByName('SJ4WEB_MESSAGE_BEFORE_TIER')
+            && Configuration::deleteByName('SJ4WEB_MESSAGE_AFTER_TIER')
+            && Configuration::deleteByName('SJ4WEB_MESSAGE_BETWEEN_TIERS')
+            && Configuration::deleteByName('SJ4WEB_MESSAGE_TIER_INFO')
             && Configuration::deleteByName('SJ4WEB_COLOR_BG')
             && Configuration::deleteByName('SJ4WEB_COLOR_TEXT')
             && Configuration::deleteByName('SJ4WEB_COLOR_SUBTITLE')
@@ -88,12 +89,14 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             Configuration::updateValue('SJ4WEB_FREE_SHIPPING_INFO', Tools::getValue('SJ4WEB_FREE_SHIPPING_INFO'));
             $excludedCats = Tools::getValue('SJ4WEB_EXCLUDED_CATEGORIES');
             Configuration::updateValue('SJ4WEB_EXCLUDED_CATEGORIES', is_array($excludedCats) ? implode(',', $excludedCats) : '');
+            $allowedCountries = Tools::getValue('SJ4WEB_ALLOWED_COUNTRIES');
+            Configuration::updateValue('SJ4WEB_ALLOWED_COUNTRIES', is_array($allowedCountries) ? implode(',', $allowedCountries) : 'FR,BE');
             Configuration::updateValue('SJ4WEB_DISCOUNT_ENABLED', Tools::getValue('SJ4WEB_DISCOUNT_ENABLED'));
-            Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD', Tools::getValue('SJ4WEB_DISCOUNT_THRESHOLD'));
-            Configuration::updateValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM', Tools::getValue('SJ4WEB_DISCOUNT_THRESHOLD_FROM'));
-            Configuration::updateValue('SJ4WEB_DISCOUNT_TYPE', Tools::getValue('SJ4WEB_DISCOUNT_TYPE'));
-            Configuration::updateValue('SJ4WEB_DISCOUNT_VALUE', Tools::getValue('SJ4WEB_DISCOUNT_VALUE'));
-            Configuration::updateValue('SJ4WEB_DISCOUNT_INFO', Tools::getValue('SJ4WEB_DISCOUNT_INFO'));
+            Configuration::updateValue('SJ4WEB_DISCOUNT_MIN_DISPLAY', Tools::getValue('SJ4WEB_DISCOUNT_MIN_DISPLAY'));
+            Configuration::updateValue('SJ4WEB_MESSAGE_BEFORE_TIER', Tools::getValue('SJ4WEB_MESSAGE_BEFORE_TIER'));
+            Configuration::updateValue('SJ4WEB_MESSAGE_AFTER_TIER', Tools::getValue('SJ4WEB_MESSAGE_AFTER_TIER'));
+            Configuration::updateValue('SJ4WEB_MESSAGE_BETWEEN_TIERS', Tools::getValue('SJ4WEB_MESSAGE_BETWEEN_TIERS'));
+            Configuration::updateValue('SJ4WEB_MESSAGE_TIER_INFO', Tools::getValue('SJ4WEB_MESSAGE_TIER_INFO'));
             Configuration::updateValue('SJ4WEB_COLOR_BG', Tools::getValue('SJ4WEB_COLOR_BG'));
             Configuration::updateValue('SJ4WEB_COLOR_TEXT', Tools::getValue('SJ4WEB_COLOR_TEXT'));
             Configuration::updateValue('SJ4WEB_COLOR_SUBTITLE', Tools::getValue('SJ4WEB_COLOR_SUBTITLE'));
@@ -117,13 +120,14 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             'SJ4WEB_FREE_SHIPPING_ENABLED' => Configuration::get('SJ4WEB_FREE_SHIPPING_ENABLED'),
             'SJ4WEB_FREE_SHIPPING_THRESHOLD' => Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD'),
             'SJ4WEB_FREE_SHIPPING_INFO' => Configuration::get('SJ4WEB_FREE_SHIPPING_INFO'),
-            'SJ4WEB_EXCLUDED_CATEGORIES' => explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')),
+            'SJ4WEB_EXCLUDED_CATEGORIES[]' => explode(',', Configuration::get('SJ4WEB_EXCLUDED_CATEGORIES')),
+            'SJ4WEB_ALLOWED_COUNTRIES[]' => explode(',', Configuration::get('SJ4WEB_ALLOWED_COUNTRIES', null, null, null, 'FR,BE')),
             'SJ4WEB_DISCOUNT_ENABLED' => Configuration::get('SJ4WEB_DISCOUNT_ENABLED'),
-            'SJ4WEB_DISCOUNT_THRESHOLD' => Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD'),
-            'SJ4WEB_DISCOUNT_THRESHOLD_FROM' => Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD_FROM'),
-            'SJ4WEB_DISCOUNT_TYPE' => Configuration::get('SJ4WEB_DISCOUNT_TYPE'),
-            'SJ4WEB_DISCOUNT_VALUE' => Configuration::get('SJ4WEB_DISCOUNT_VALUE'),
-            'SJ4WEB_DISCOUNT_INFO' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
+            'SJ4WEB_DISCOUNT_MIN_DISPLAY' => Configuration::get('SJ4WEB_DISCOUNT_MIN_DISPLAY'),
+            'SJ4WEB_MESSAGE_BEFORE_TIER' => Configuration::get('SJ4WEB_MESSAGE_BEFORE_TIER'),
+            'SJ4WEB_MESSAGE_AFTER_TIER' => Configuration::get('SJ4WEB_MESSAGE_AFTER_TIER'),
+            'SJ4WEB_MESSAGE_BETWEEN_TIERS' => Configuration::get('SJ4WEB_MESSAGE_BETWEEN_TIERS'),
+            'SJ4WEB_MESSAGE_TIER_INFO' => Configuration::get('SJ4WEB_MESSAGE_TIER_INFO'),
             'SJ4WEB_COLOR_BG' => Configuration::get('SJ4WEB_COLOR_BG', null, null, null, '#e9e4db'),
             'SJ4WEB_COLOR_TEXT' => Configuration::get('SJ4WEB_COLOR_TEXT', null, null, null, '#707070'),
             'SJ4WEB_COLOR_SUBTITLE' => Configuration::get('SJ4WEB_COLOR_SUBTITLE', null, null, null, '#707070'),
@@ -189,55 +193,58 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                         ]
                     ],
                     [
+                        'type' => 'select',
+                        'label' => $this->trans('Allowed countries', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_ALLOWED_COUNTRIES',
+                        'multiple' => true,
+                        'options' => [
+                            'query' => Country::getCountries($this->context->language->id),
+                            'id' => 'iso_code',
+                            'name' => 'name'
+                        ],
+                        'desc' => $this->trans('Select countries where messages should be displayed. Default: FR, BE', [], 'Modules.Sj4webtofreedelivery.Admin')
+                    ],
+                    [
                         'type' => 'switch',
-                        'label' => $this->trans('Enable discount threshold', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'label' => $this->trans('Enable discount tiers messages', [], 'Modules.Sj4webtofreedelivery.Admin'),
                         'name' => 'SJ4WEB_DISCOUNT_ENABLED',
                         'is_bool' => true,
                         'values' => [
                             ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Modules.Sj4webtofreedelivery.Admin')],
                             ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Modules.Sj4webtofreedelivery.Admin')],
                         ],
-                        'desc' => $this->trans('Display remaining amount needed for a discount.', [], 'Modules.Sj4webtofreedelivery.Admin')
+                        'desc' => $this->trans('Display messages about discount tiers from sj4web_paymentdiscount module.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->trans('Discount threshold (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_THRESHOLD',
+                        'label' => $this->trans('Minimum cart amount to display discount messages (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_DISCOUNT_MIN_DISPLAY',
                         'class' => 'fixed-width-sm',
-                        'desc' => $this->trans('Amount needed for discount.', [], 'Modules.Sj4webtofreedelivery.Admin')
+                        'desc' => $this->trans('Start displaying discount tier messages from this cart amount. Leave blank or 0 to display from start.', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->trans('Minimum cart amount to display (€)', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_THRESHOLD_FROM',
-                        'class' => 'fixed-width-sm',
-                        'desc' => $this->trans('Display message starting from this cart amount. Leave blank or 0 to disable.', [], 'Modules.Sj4webtofreedelivery.Admin')
-                    ],
-                    [
-                        'type' => 'select',
-                        'label' => $this->trans('Discount type', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_TYPE',
-                        'options' => [
-                            'query' => [
-                                ['id' => 'percent', 'name' => $this->trans('Percentage', [], 'Modules.Sj4webtofreedelivery.Admin')],
-                                ['id' => 'amount', 'name' => $this->trans('Amount', [], 'Modules.Sj4webtofreedelivery.Admin')],
-                            ],
-                            'id' => 'id',
-                            'name' => 'name'
-                        ]
+                        'label' => $this->trans('Message BEFORE tier (not reached)', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_MESSAGE_BEFORE_TIER',
+                        'desc' => $this->trans('Tokens: {amount} = remaining amount, {discount} = discount value, {threshold} = tier threshold. Example: "Plus que {amount}€ pour bénéficier de {discount} de remise"', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->trans('Discount value', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_VALUE',
-                        'class' => 'fixed-width-sm',
-                        'desc' => $this->trans('Discount value (percentage or fixed amount).', [], 'Modules.Sj4webtofreedelivery.Admin')
+                        'label' => $this->trans('Message AFTER tier (tier reached, no next tier)', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_MESSAGE_AFTER_TIER',
+                        'desc' => $this->trans('Tokens: {discount} = current discount. Example: "Vous bénéficiez de {discount} de remise"', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->trans('Discount complementary message', [], 'Modules.Sj4webtofreedelivery.Admin'),
-                        'name' => 'SJ4WEB_DISCOUNT_INFO',
-                        'desc' => $this->trans('Add some text here to explain the discount condition, e.g. valid only for professionals.', [], 'Modules.Sj4webtofreedelivery.Admin')
+                        'label' => $this->trans('Message BETWEEN tiers (tier reached, next tier exists)', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_MESSAGE_BETWEEN_TIERS',
+                        'desc' => $this->trans('Tokens: {discount} = current discount, {amount} = amount to next tier, {next_discount} = next discount. Example: "Vous bénéficiez de {discount}, plus que {amount}€ pour {next_discount}"', [], 'Modules.Sj4webtofreedelivery.Admin')
+                    ],
+                    [
+                        'type' => 'text',
+                        'label' => $this->trans('Additional tier information', [], 'Modules.Sj4webtofreedelivery.Admin'),
+                        'name' => 'SJ4WEB_MESSAGE_TIER_INFO',
+                        'desc' => $this->trans('Optional extra text to display with tier messages (e.g., "selon moyen de paiement").', [], 'Modules.Sj4webtofreedelivery.Admin')
                     ],
                     [
                         'type' => 'switch',
@@ -351,12 +358,17 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             return [];
         }
 
-        $authorized_iso_codes = ['FR', 'BE'];
-        $id_address = (int)$cart->id_address_delivery;
-        if ($id_address) {
-            $country = new Country((new Address($id_address))->id_country);
-            if (!in_array($country->iso_code, $authorized_iso_codes, true)) {
-                return [];
+        // Vérifier les pays autorisés (configurable)
+        $allowedCountries = Configuration::get('SJ4WEB_ALLOWED_COUNTRIES', null, null, null, 'FR,BE');
+        $authorized_iso_codes = array_filter(explode(',', $allowedCountries));
+
+        if (!empty($authorized_iso_codes)) {
+            $id_address = (int)$cart->id_address_delivery;
+            if ($id_address) {
+                $country = new Country((new Address($id_address))->id_country);
+                if (!in_array($country->iso_code, $authorized_iso_codes, true)) {
+                    return [];
+                }
             }
         }
 
@@ -409,6 +421,111 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
     }
 
     /**
+     * Récupère les paliers de remise depuis le module sj4web_paymentdiscount
+     *
+     * @return array Liste des paliers triés par threshold croissant
+     */
+    private function getTiersFromPaymentDiscountModule(): array
+    {
+        // Vérifier si le module paymentdiscount existe et est actif
+        if (!Module::isInstalled('sj4web_paymentdiscount') || !Module::isEnabled('sj4web_paymentdiscount')) {
+            return [];
+        }
+
+        // Vérifier si la table existe
+        $tableName = _DB_PREFIX_ . 'sj4web_payment_discount_rule';
+        $tableExists = Db::getInstance()->executeS("SHOW TABLES LIKE '" . $tableName . "'");
+        if (empty($tableExists)) {
+            return [];
+        }
+
+        // Récupérer les paliers actifs avec leurs messages personnalisés (optionnels)
+        $sql = 'SELECT `threshold`, `discount_percent`, `voucher_code`, `name`, `message_before`, `message_after`
+                FROM `' . $tableName . '`
+                WHERE `active` = 1
+                ORDER BY `threshold` ASC';
+
+        $result = Db::getInstance()->executeS($sql);
+
+        return $result ?: [];
+    }
+
+    /**
+     * Vérifie si un BR du module payment_discount est appliqué dans le panier
+     *
+     * @param Cart $cart
+     * @param array $tiers Liste des paliers
+     * @return array|null Informations du palier appliqué ou null
+     */
+    private function getAppliedDiscountVoucher($cart, $tiers): ?array
+    {
+        if (empty($tiers) || !$cart || !$cart->id) {
+            return null;
+        }
+
+        // Récupérer tous les voucher codes des paliers
+        $tierVoucherCodes = array_column($tiers, 'voucher_code');
+
+        // Récupérer les CartRules du panier
+        $cartRules = $cart->getCartRules(CartRule::FILTER_ACTION_ALL);
+
+        foreach ($cartRules as $cartRule) {
+            $code = $cartRule['code'];
+
+            // Vérifier si ce code correspond à un de nos paliers
+            if (in_array($code, $tierVoucherCodes, true)) {
+                // Trouver le palier correspondant
+                foreach ($tiers as $tier) {
+                    if ($tier['voucher_code'] === $code) {
+                        return $tier;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Remplace les tokens dans une phrase
+     *
+     * @param string $template Phrase avec tokens
+     * @param array $data Données pour remplacement
+     * @return string Phrase avec tokens remplacés
+     */
+    private function replaceTokens(string $template, array $data): string
+    {
+        $replacements = [
+            '{amount}' => isset($data['amount']) ? number_format((float)$data['amount'], 2, ',', ' ') : '',
+            '{discount}' => $data['discount'] ?? '',
+            '{next_discount}' => $data['next_discount'] ?? '',
+            '{threshold}' => isset($data['threshold']) ? number_format((float)$data['threshold'], 2, ',', ' ') : '',
+            '{next_threshold}' => isset($data['next_threshold']) ? number_format((float)$data['next_threshold'], 2, ',', ' ') : '',
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
+    /**
+     * Récupère un message avec fallback : message du palier ou message global
+     *
+     * @param array|null $tier Le palier (peut contenir message_before/message_after)
+     * @param string $messageType 'before' ou 'after'
+     * @param string $globalConfigKey Clé de config pour le message global
+     * @return string Le message à utiliser
+     */
+    private function getTierMessageWithFallback($tier, string $messageType, string $globalConfigKey): string
+    {
+        // Vérifier si le palier a un message personnalisé
+        if ($tier && !empty($tier['message_' . $messageType])) {
+            return $tier['message_' . $messageType];
+        }
+
+        // Fallback sur le message global
+        return Configuration::get($globalConfigKey);
+    }
+
+    /**
      * Calcule le message à afficher selon le montant du panier.
      *
      * @param float $cartTotal Montant du panier HT (hors frais de port)
@@ -427,18 +544,9 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
         $freeEnabled = (bool)Configuration::get('SJ4WEB_FREE_SHIPPING_ENABLED');
         $discountEnabled = (bool)Configuration::get('SJ4WEB_DISCOUNT_ENABLED');
-
         $freeThreshold = (float)Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD');
-        $discountThreshold = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD');
-        $discountType = Configuration::get('SJ4WEB_DISCOUNT_TYPE');
-        $discountValue = (float)Configuration::get('SJ4WEB_DISCOUNT_VALUE');
-        $minCartFrom = (float)Configuration::get('SJ4WEB_DISCOUNT_THRESHOLD_FROM');
 
-        if($discountEnabled) {
-            $cartTotal += $cartDiscount; // Ajoute la remise du panier si applicable
-        }
-
-        // Cas 1 : Livraison gratuite
+        // ===== PRIORITÉ 1 : Livraison gratuite =====
         if ($freeEnabled && $cartTotal < $freeThreshold) {
             $diff = round($freeThreshold - $cartTotal, 2);
             return [
@@ -452,42 +560,154 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             ];
         }
 
-        // Cas 2 : Remise virement si le seuil est atteint (ou presque) et que le montant du panier est supérieur au seuil minimum (si défini)
-        if ($discountEnabled && $cartTotal < $discountThreshold && $cartTotal >= $freeThreshold
-            && ($minCartFrom === 0.0 || $cartTotal >= $minCartFrom)
-        ) {
-            $diff = round($discountThreshold - $cartTotal, 2);
-            $label = $discountType === 'percent'
-                ? $discountValue . '%'
-                : number_format($discountValue, 2, ',', ' ') . ' €';
+        // ===== PRIORITÉ 2 : Paliers de remise multi-niveaux =====
+        if (!$discountEnabled) {
+            return null;
+        }
+
+        // Récupérer les paliers depuis le module payment_discount
+        $tiers = $this->getTiersFromPaymentDiscountModule();
+        if (empty($tiers)) {
+            return null;
+        }
+
+        // Vérifier le montant minimum d'affichage
+        $minDisplay = (float)Configuration::get('SJ4WEB_DISCOUNT_MIN_DISPLAY');
+        if ($minDisplay > 0 && $cartTotal < $minDisplay) {
+            return null;
+        }
+
+        // Ajouter la remise actuelle au total si applicable (pour le calcul de palier)
+        $effectiveTotal = $cartTotal + $cartDiscount;
+
+        // Détecter si un BR du module est déjà appliqué
+        $appliedVoucher = $this->getAppliedDiscountVoucher($this->context->cart, $tiers);
+
+        // Trouver le palier actuel et le palier suivant
+        $currentTier = null;
+        $nextTier = null;
+
+        foreach ($tiers as $index => $tier) {
+            if ($effectiveTotal >= (float)$tier['threshold']) {
+                $currentTier = $tier;
+                // Chercher le palier suivant
+                if (isset($tiers[$index + 1])) {
+                    $nextTier = $tiers[$index + 1];
+                }
+            } else {
+                // Premier palier non atteint = c'est le prochain
+                if ($nextTier === null) {
+                    $nextTier = $tier;
+                }
+                break;
+            }
+        }
+
+        $tierInfo = Configuration::get('SJ4WEB_MESSAGE_TIER_INFO');
+
+        // ===== CAS 1 : Aucun palier atteint, afficher le prochain =====
+        if ($currentTier === null && $nextTier !== null) {
+            $diff = round((float)$nextTier['threshold'] - $effectiveTotal, 2);
+            $discountLabel = $nextTier['discount_percent'] . '%';
+
+            // Utiliser le message du palier si présent, sinon message global
+            $messageTemplate = $this->getTierMessageWithFallback(
+                $nextTier,
+                'before',
+                'SJ4WEB_MESSAGE_BEFORE_TIER'
+            );
+
+            $message = $this->replaceTokens(
+                $messageTemplate,
+                [
+                    'amount' => $diff,
+                    'discount' => $discountLabel,
+                    'threshold' => $nextTier['threshold']
+                ]
+            );
 
             return [
                 'type' => 'discount_waiting',
-                'message' => $this->trans(
-                    'Only %amount% € left to get %discount% off your order.',
-                    [
-                        '%amount%' => number_format($diff, 2, ',', ' '),
-                        '%discount%' => $label,
-                    ],
-                    'Modules.Sj4webtofreedelivery.Shop'
-                ),
-                'extra' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
+                'message' => $message,
+                'extra' => $tierInfo,
             ];
         }
-        // Cas 3 : Remise active
-        if ($discountEnabled && $cartTotal >= $discountThreshold) {
-            $label = $discountType === 'percent'
-                ? $discountValue . '%'
-                : number_format($discountValue, 2, ',', ' ') . ' €';
+
+        // ===== CAS 2 : Palier atteint ET BR appliqué =====
+        if ($appliedVoucher !== null && $currentTier !== null) {
+            $discountLabel = $appliedVoucher['discount_percent'] . '%';
+
+            // Cas 2A : Il existe un palier suivant
+            if ($nextTier !== null) {
+                $diff = round((float)$nextTier['threshold'] - $effectiveTotal, 2);
+                $nextDiscountLabel = $nextTier['discount_percent'] . '%';
+
+                $message = $this->replaceTokens(
+                    Configuration::get('SJ4WEB_MESSAGE_BETWEEN_TIERS'),
+                    [
+                        'discount' => $discountLabel,
+                        'amount' => $diff,
+                        'next_discount' => $nextDiscountLabel,
+                        'next_threshold' => $nextTier['threshold']
+                    ]
+                );
+
+                return [
+                    'type' => 'discount_active_between',
+                    'message' => $message,
+                    'extra' => $tierInfo,
+                ];
+            }
+
+            // Cas 2B : Palier maximum atteint
+            // Utiliser le message du palier si présent, sinon message global
+            $messageTemplate = $this->getTierMessageWithFallback(
+                $appliedVoucher,
+                'after',
+                'SJ4WEB_MESSAGE_AFTER_TIER'
+            );
+
+            $message = $this->replaceTokens(
+                $messageTemplate,
+                [
+                    'discount' => $discountLabel
+                ]
+            );
 
             return [
                 'type' => 'discount_active',
-                'message' => $this->trans(
-                    'You’re getting %discount% off your order.',
-                    ['%discount%' => $label],
-                    'Modules.Sj4webtofreedelivery.Shop'
-                ),
-                'extra' => Configuration::get('SJ4WEB_DISCOUNT_INFO'),
+                'message' => $message,
+                'extra' => $tierInfo,
+            ];
+        }
+
+        // ===== CAS 3 : Palier atteint mais BR PAS appliqué =====
+        // Cela signifie que le client ne remplit pas les conditions (groupe, pays, etc.)
+        // Dans ce cas, on affiche le palier suivant s'il existe
+        if ($currentTier !== null && $appliedVoucher === null && $nextTier !== null) {
+            $diff = round((float)$nextTier['threshold'] - $effectiveTotal, 2);
+            $nextDiscountLabel = $nextTier['discount_percent'] . '%';
+
+            // Utiliser le message du palier suivant si présent, sinon message global
+            $messageTemplate = $this->getTierMessageWithFallback(
+                $nextTier,
+                'before',
+                'SJ4WEB_MESSAGE_BEFORE_TIER'
+            );
+
+            $message = $this->replaceTokens(
+                $messageTemplate,
+                [
+                    'amount' => $diff,
+                    'discount' => $nextDiscountLabel,
+                    'threshold' => $nextTier['threshold']
+                ]
+            );
+
+            return [
+                'type' => 'discount_waiting',
+                'message' => $message,
+                'extra' => $tierInfo,
             ];
         }
 
