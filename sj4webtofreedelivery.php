@@ -411,7 +411,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                 : null,
             'free_ship_from' => $priceFormatter->format((float)Configuration::get('SJ4WEB_FREE_SHIPPING_THRESHOLD')),
             'free_ship_message' => $message['type'] === 'free_shipping' ? $message['message'] : null,
-            'discount_message' => in_array($message['type'], ['discount_active', 'discount_waiting']) ? $message['message'] : null,
+            'discount_message' => in_array($message['type'], ['discount_active', 'discount_waiting', 'discount_active_between']) ? $message['message'] : '',
             'hide' => false,
             'txt' => $message['extra'] ?? '',
             'color_subtitle' => Configuration::get('SJ4WEB_COLOR_SUBTITLE', null, null, null, '#707070'),
@@ -440,14 +440,54 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         }
 
         // Récupérer les paliers actifs avec leurs messages personnalisés (optionnels)
-        $sql = 'SELECT `threshold`, `discount_percent`, `voucher_code`, `name`, `message_before`, `message_after`
+        $sql = 'SELECT `threshold`, `voucher_code`, `name`, `message_before`, `message_after`
                 FROM `' . $tableName . '`
                 WHERE `active` = 1
                 ORDER BY `threshold` ASC';
 
         $result = Db::getInstance()->executeS($sql);
 
-        return $result ?: [];
+        if (empty($result)) {
+            return [];
+        }
+
+        // Enrichir chaque palier avec le pourcentage depuis le CartRule
+        foreach ($result as &$tier) {
+            $tier['discount_percent'] = $this->getDiscountPercentFromVoucher($tier['voucher_code']);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Récupère le pourcentage de remise depuis un CartRule PrestaShop
+     *
+     * @param string $voucherCode Code du bon de réduction
+     * @return float Pourcentage de remise (ex: 5.0 pour 5%)
+     */
+    private function getDiscountPercentFromVoucher($voucherCode)
+    {
+        if (empty($voucherCode)) {
+            return 0;
+        }
+
+        // Récupérer le CartRule depuis son code
+        $cartRuleId = (int) Db::getInstance()->getValue(
+            'SELECT `id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule` WHERE `code` = "' . pSQL($voucherCode) . '"'
+        );
+
+        if (!$cartRuleId) {
+            return 0;
+        }
+
+        try {
+            $cartRule = new CartRule($cartRuleId);
+
+            // Le pourcentage de remise est dans reduction_percent
+            return (float) $cartRule->reduction_percent;
+        } catch (Exception $e) {
+            return 0;
+        }
     }
 
     /**
