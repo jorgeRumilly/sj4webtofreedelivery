@@ -440,7 +440,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         }
 
         // Récupérer les paliers actifs avec leurs messages personnalisés (optionnels)
-        $sql = 'SELECT `threshold`, `voucher_code`, `name`, `message_before`, `message_after`
+        $sql = 'SELECT `threshold`, `trigger_threshold`, `voucher_code`, `name`, `message_before`, `message_after`, `message_between`
                 FROM `' . $tableName . '`
                 WHERE `active` = 1
                 ORDER BY `threshold` ASC';
@@ -620,6 +620,15 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         // Ajouter la remise actuelle au total si applicable (pour le calcul de palier)
         $effectiveTotal = $cartTotal + $cartDiscount;
 
+        // Filtrer les paliers selon trigger_threshold
+        // Ne garder que les paliers dont le trigger_threshold (ou threshold si null) est atteint
+        $tiers = array_filter($tiers, function($tier) use ($effectiveTotal) {
+            $triggerThreshold = isset($tier['trigger_threshold']) && $tier['trigger_threshold'] > 0
+                ? (float)$tier['trigger_threshold']
+                : (float)$tier['threshold'];
+            return $effectiveTotal >= $triggerThreshold;
+        });
+
         // Détecter si un BR du module est déjà appliqué
         $appliedVoucher = $this->getAppliedDiscountVoucher($this->context->cart, $tiers);
 
@@ -682,8 +691,13 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                 $diff = round((float)$nextTier['threshold'] - $effectiveTotal, 2);
                 $nextDiscountLabel = $nextTier['discount_percent'] . '%';
 
+                // Utiliser message_between du palier actuel si défini, sinon message global
+                $messageTemplate = !empty($currentTier['message_between'])
+                    ? $currentTier['message_between']
+                    : Configuration::get('SJ4WEB_MESSAGE_BETWEEN_TIERS');
+
                 $message = $this->replaceTokens(
-                    Configuration::get('SJ4WEB_MESSAGE_BETWEEN_TIERS'),
+                    $messageTemplate,
                     [
                         'discount' => $discountLabel,
                         'amount' => $diff,
