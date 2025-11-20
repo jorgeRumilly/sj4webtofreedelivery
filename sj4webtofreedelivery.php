@@ -472,7 +472,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
         }
 
         // Récupérer le CartRule depuis son code
-        $cartRuleId = (int) Db::getInstance()->getValue(
+        $cartRuleId = (int)Db::getInstance()->getValue(
             'SELECT `id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule` WHERE `code` = "' . pSQL($voucherCode) . '"'
         );
 
@@ -484,7 +484,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             $cartRule = new CartRule($cartRuleId);
 
             // Le pourcentage de remise est dans reduction_percent
-            return (float) $cartRule->reduction_percent;
+            return (float)$cartRule->reduction_percent;
         } catch (Exception $e) {
             return 0;
         }
@@ -622,7 +622,7 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
 
         // Filtrer les paliers selon trigger_threshold
         // Ne garder que les paliers dont le trigger_threshold (ou threshold si null) est atteint
-        $tiers = array_filter($tiers, function($tier) use ($effectiveTotal) {
+        $tiers = array_filter($tiers, function ($tier) use ($effectiveTotal) {
             $triggerThreshold = isset($tier['trigger_threshold']) && $tier['trigger_threshold'] > 0
                 ? (float)$tier['trigger_threshold']
                 : (float)$tier['threshold'];
@@ -687,7 +687,8 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
             $discountLabel = $appliedVoucher['discount_percent'] . '%';
 
             // Cas 2A : Il existe un palier suivant
-            if ($nextTier !== null) {
+            if ($nextTier !== null && $nextTier !== $currentTier) {
+
                 $diff = round((float)$nextTier['threshold'] - $effectiveTotal, 2);
                 $nextDiscountLabel = $nextTier['discount_percent'] . '%';
 
@@ -705,6 +706,34 @@ class Sj4webtofreedelivery extends Module implements WidgetInterface
                         'next_threshold' => $nextTier['threshold']
                     ]
                 );
+
+                if (empty($message)) {
+                    $first_message = $this->getTierMessageWithFallback(
+                        $currentTier,
+                        'after',
+                        'SJ4WEB_MESSAGE_AFTER_TIER'
+                    );
+                    $first_message = $this->replaceTokens(
+                        $first_message,
+                        [
+                            'discount' => $discountLabel
+                        ]
+                    );
+                    $second_message = $this->getTierMessageWithFallback(
+                        $nextTier,
+                        'before',
+                        'SJ4WEB_MESSAGE_BEFORE_TIER'
+                    );
+                    $second_message = $this->replaceTokens(
+                        $second_message,
+                        [
+                            'amount' => $diff,
+                            'discount' => $nextDiscountLabel,
+                            'threshold' => $nextTier['threshold']
+                        ]
+                    );
+                    $message = $first_message . ' ' . $second_message;
+                }
 
                 return [
                     'type' => 'discount_active_between',
